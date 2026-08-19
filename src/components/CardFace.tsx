@@ -63,19 +63,32 @@ export default function CardFace({
 
       {/* Card Contents Container */}
       <div className="relative z-20 flex h-full flex-col justify-between p-5">
-        {/* Top Header: Card Label / Bank Name & Contactless Symbol */}
-        <div className="flex items-start justify-between gap-3">
+        {/* Top Header: Card Label, Card Type Badge / Bank Name & Contactless Symbol */}
+        <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <p
-              className={`truncate text-[15px] font-bold tracking-tight ${
-                isLight ? "text-slate-950" : "text-white"
-              }`}
-            >
-              {card.label}
-            </p>
+            <div className="flex items-center gap-2">
+              <p
+                className={`truncate text-[15px] font-bold tracking-tight ${
+                  isLight ? "text-slate-950" : "text-white"
+                }`}
+              >
+                {card.label}
+              </p>
+              {/* Card Type Badge visible at top when stacked */}
+              <span
+                className={`inline-flex shrink-0 items-center rounded-md px-1.5 py-0.5 text-[9px] font-black tracking-wider uppercase border ${
+                  isLight
+                    ? "bg-slate-900/10 text-slate-950 border-slate-900/20"
+                    : "bg-white/20 text-white border-white/25 shadow-sm"
+                }`}
+              >
+                {card.category.toUpperCase()}
+              </span>
+            </div>
+
             {card.bankName ? (
               <p
-                className={`truncate text-[11px] font-semibold tracking-wider uppercase ${
+                className={`truncate text-[11px] font-semibold tracking-wider uppercase mt-0.5 ${
                   isLight ? "text-slate-800/80" : "text-white/70"
                 }`}
               >
@@ -83,7 +96,7 @@ export default function CardFace({
               </p>
             ) : null}
           </div>
-          <div className="flex shrink-0 items-center">
+          <div className="flex shrink-0 items-center pt-0.5">
             <ContactlessIcon
               className={`h-5 w-5 rotate-90 ${isLight ? "text-slate-900/90" : "text-white/90"}`}
             />

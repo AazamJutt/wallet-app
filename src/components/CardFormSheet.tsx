@@ -222,22 +222,64 @@ export default function CardFormSheet({ initial, onCancel, onSave }: CardFormShe
             </Field>
 
             <Field label="Card color">
-              <div className="flex flex-wrap gap-2.5">
-                {CARD_COLOR_PRESETS.map((hex) => (
-                  <button
-                    key={hex}
-                    type="button"
-                    onClick={() => setColor(hex)}
-                    className="flex h-9 w-9 items-center justify-center rounded-full ring-2 transition"
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  {CARD_COLOR_PRESETS.map((hex) => (
+                    <button
+                      key={hex}
+                      type="button"
+                      onClick={() => setColor(hex)}
+                      className="flex h-9 w-9 items-center justify-center rounded-full ring-2 transition hover:scale-105 active:scale-95"
+                      style={{
+                        backgroundColor: hex,
+                        borderColor: "transparent",
+                        outline: color === hex ? "2px solid white" : "none",
+                        outlineOffset: 2,
+                      }}
+                      aria-label={`Choose color ${hex}`}
+                    />
+                  ))}
+
+                  {/* Custom Color Wheel Button */}
+                  <label
+                    className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition hover:scale-105 active:scale-95 shadow-md"
                     style={{
-                      backgroundColor: hex,
-                      borderColor: "transparent",
-                      outline: color === hex ? "2px solid white" : "none",
+                      background:
+                        "conic-gradient(from 0deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)",
+                      outline: !CARD_COLOR_PRESETS.includes(color) ? "2px solid white" : "none",
                       outlineOffset: 2,
                     }}
-                    aria-label={`Choose color ${hex}`}
+                    title="Custom Color Wheel"
+                  >
+                    <input
+                      type="color"
+                      value={color.startsWith("#") && color.length === 7 ? color : "#1e3a8a"}
+                      onChange={(e) => setColor(e.target.value)}
+                      className="absolute inset-0 h-full w-full opacity-0 cursor-pointer"
+                    />
+                    <div className="h-3 w-3 rounded-full bg-white/90 border border-black/30 pointer-events-none shadow-sm" />
+                  </label>
+                </div>
+
+                {/* Hex Code Input */}
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="h-8 w-8 shrink-0 rounded-lg ring-1 ring-white/20 shadow-inner"
+                    style={{ backgroundColor: color }}
                   />
-                ))}
+                  <input
+                    type="text"
+                    value={color}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setColor(val.startsWith("#") ? val : `#${val}`);
+                    }}
+                    placeholder="#HEX color"
+                    maxLength={7}
+                    className="w-32 rounded-xl bg-white/[0.06] px-3 py-1.5 text-[13px] font-mono text-white outline-none ring-1 ring-white/[0.08] focus:ring-white/25"
+                  />
+                  <span className="text-[12px] text-white/50">Custom Hex Code</span>
+                </div>
               </div>
             </Field>
 
