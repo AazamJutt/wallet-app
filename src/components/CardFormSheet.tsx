@@ -16,6 +16,8 @@ import { CheckIcon, XIcon } from "./icons";
 
 interface CardFormSheetProps {
   initial?: WalletCard;
+  initialCategory?: CardCategory;
+  initialDraftData?: Partial<WalletCardDraft>;
   onCancel: () => void;
   onSave: (draft: WalletCardDraft) => Promise<void> | void;
 }
@@ -42,17 +44,25 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 const inputClass =
   "w-full rounded-xl bg-white/[0.06] px-3.5 py-3 text-[15px] text-white placeholder:text-white/30 ring-1 ring-white/[0.08] outline-none focus:ring-white/25 transition tabular-nums";
 
-export default function CardFormSheet({ initial, onCancel, onSave }: CardFormSheetProps) {
+export default function CardFormSheet({
+  initial,
+  initialCategory,
+  initialDraftData,
+  onCancel,
+  onSave,
+}: CardFormSheetProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [label, setLabel] = useState(initial?.label ?? "");
-  const [holder, setHolder] = useState(initial?.holder ?? "");
-  const [number, setNumber] = useState(initial?.number ?? "");
+  const [label, setLabel] = useState(initial?.label ?? initialDraftData?.label ?? "");
+  const [holder, setHolder] = useState(initial?.holder ?? initialDraftData?.holder ?? "");
+  const [number, setNumber] = useState(initial?.number ?? initialDraftData?.number ?? "");
   const [expiry, setExpiry] = useState(
     initial ? `${initial.expiryMonth}/${initial.expiryYear.slice(-2)}` : ""
   );
   const [cvv, setCvv] = useState(initial?.cvv ?? "");
-  const [bankName, setBankName] = useState(initial?.bankName ?? "");
-  const [category, setCategory] = useState<CardCategory>(initial?.category ?? "credit");
+  const [bankName, setBankName] = useState(initial?.bankName ?? initialDraftData?.bankName ?? "");
+  const [category, setCategory] = useState<CardCategory>(
+    initial?.category ?? initialCategory ?? initialDraftData?.category ?? "credit"
+  );
   const [color, setColor] = useState(initial?.color ?? CARD_COLOR_PRESETS[1]);
   const [notes, setNotes] = useState(initial?.notes ?? "");
   const [cardImage, setCardImage] = useState<string | undefined>(initial?.cardImage);
