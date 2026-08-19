@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { brandTheme, customGradient, formatExpiryDisplay, isLightBackground, maskCardNumber } from "@/lib/cardUtils";
 import type { WalletCard } from "@/lib/types";
 import { CardChip, ContactlessIcon, NetworkBrandLogo } from "./BrandLogos";
+import QRCodeDisplay from "./QRCodeDisplay";
 
 interface CardFaceProps {
   card: WalletCard;
@@ -49,6 +50,20 @@ export default function CardFace({
       } ${className}`}
       style={{ background, ...style }}
     >
+      {/* Card Custom Face Image Background Layer */}
+      {card.cardImage ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={card.cardImage}
+            alt={card.label}
+            className="absolute inset-0 z-0 h-full w-full object-cover"
+          />
+          {/* Gradient readability shadow overlay */}
+          <div className="absolute inset-0 z-[1] bg-gradient-to-t from-black/85 via-black/35 to-black/50 pointer-events-none" />
+        </>
+      ) : null}
+
       {/* Specular glare glass reflection overlay */}
       <div className="apple-card-glare" />
 
@@ -69,7 +84,7 @@ export default function CardFace({
             <div className="flex items-center gap-2">
               <p
                 className={`truncate text-[15px] font-bold tracking-tight ${
-                  isLight ? "text-slate-950" : "text-white"
+                  card.cardImage ? "text-white" : isLight ? "text-slate-950" : "text-white"
                 }`}
               >
                 {card.label}
@@ -77,7 +92,9 @@ export default function CardFace({
               {/* Card Type Badge visible at top when stacked */}
               <span
                 className={`inline-flex shrink-0 items-center rounded-md px-1.5 py-0.5 text-[9px] font-black tracking-wider uppercase border ${
-                  isLight
+                  card.cardImage
+                    ? "bg-white/20 text-white border-white/30"
+                    : isLight
                     ? "bg-slate-900/10 text-slate-950 border-slate-900/20"
                     : "bg-white/20 text-white border-white/25 shadow-sm"
                 }`}
@@ -89,7 +106,7 @@ export default function CardFace({
             {card.bankName ? (
               <p
                 className={`truncate text-[11px] font-semibold tracking-wider uppercase mt-0.5 ${
-                  isLight ? "text-slate-800/80" : "text-white/70"
+                  card.cardImage ? "text-white/80" : isLight ? "text-slate-800/80" : "text-white/70"
                 }`}
               >
                 {card.bankName}
@@ -98,14 +115,21 @@ export default function CardFace({
           </div>
           <div className="flex shrink-0 items-center pt-0.5">
             <ContactlessIcon
-              className={`h-5 w-5 rotate-90 ${isLight ? "text-slate-900/90" : "text-white/90"}`}
+              className={`h-5 w-5 rotate-90 ${
+                card.cardImage ? "text-white/90" : isLight ? "text-slate-900/90" : "text-white/90"
+              }`}
             />
           </div>
         </div>
 
-        {/* Middle Section: Metallic Chip */}
+        {/* Middle Section: Metallic Chip & Pass QR Code Preview */}
         <div className="my-auto flex items-center justify-between pt-1">
           <CardChip className="h-7 w-9" />
+          {card.qrCodeData ? (
+            <div className="shrink-0 scale-90 opacity-90 transition-transform group-hover:scale-100">
+              <QRCodeDisplay value={card.qrCodeData} size={42} className="p-1 rounded-lg" />
+            </div>
+          ) : null}
         </div>
 
         {/* Bottom Section: Masked Number, Cardholder, Expiry, Brand Logo */}

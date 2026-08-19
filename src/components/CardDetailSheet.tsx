@@ -11,6 +11,7 @@ import {
   maskCardNumber,
 } from "@/lib/cardUtils";
 import CardFace from "./CardFace";
+import QRCodeDisplay from "./QRCodeDisplay";
 import { AlertIcon, CheckIcon, CopyIcon, EyeIcon, EyeOffIcon, PencilIcon, TrashIcon, XIcon } from "./icons";
 
 interface CardDetailSheetProps {
@@ -120,6 +121,19 @@ export default function CardDetailSheet({ card, onClose, onEdit, onDelete }: Car
           <div className="mx-auto mt-2 max-w-sm">
             <CardFace card={card} size="full" />
           </div>
+
+          {/* Scannable Pass QR Code Section */}
+          {card.qrCodeData && (
+            <div className="mx-auto mt-4 flex max-w-sm flex-col items-center justify-center rounded-2xl bg-white p-5 shadow-lg text-slate-900 ring-1 ring-slate-200">
+              <p className="text-[12px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+                Pass / Ticket QR Code
+              </p>
+              <QRCodeDisplay value={card.qrCodeData} size={200} className="shadow-none p-1" />
+              <p className="mt-2 text-[12px] font-mono text-slate-600 truncate max-w-full">
+                {card.qrCodeData}
+              </p>
+            </div>
+          )}
 
           {expired && (
             <div className="mt-4 flex items-center gap-2 rounded-xl bg-amber-500/10 px-3.5 py-2.5 text-amber-300 ring-1 ring-amber-500/20">

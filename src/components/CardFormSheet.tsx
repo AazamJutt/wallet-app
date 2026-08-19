@@ -1,17 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import type { CardBrand, CardCategory, WalletCard, WalletCardDraft } from "@/lib/types";
 import {
   CARD_COLOR_PRESETS,
   cvvLengthForBrand,
   detectBrand,
   formatCardNumber,
-  formatExpiryInput,
   maxLengthForBrand,
   onlyDigits,
 } from "@/lib/cardUtils";
 import CardFace from "./CardFace";
+import QRScannerModal from "./QRScannerModal";
 import { CheckIcon, XIcon } from "./icons";
 
 interface CardFormSheetProps {
@@ -43,6 +43,7 @@ const inputClass =
   "w-full rounded-xl bg-white/[0.06] px-3.5 py-3 text-[15px] text-white placeholder:text-white/30 ring-1 ring-white/[0.08] outline-none focus:ring-white/25 transition tabular-nums";
 
 export default function CardFormSheet({ initial, onCancel, onSave }: CardFormSheetProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [label, setLabel] = useState(initial?.label ?? "");
   const [holder, setHolder] = useState(initial?.holder ?? "");
   const [number, setNumber] = useState(initial?.number ?? "");
@@ -54,6 +55,9 @@ export default function CardFormSheet({ initial, onCancel, onSave }: CardFormShe
   const [category, setCategory] = useState<CardCategory>(initial?.category ?? "credit");
   const [color, setColor] = useState(initial?.color ?? CARD_COLOR_PRESETS[1]);
   const [notes, setNotes] = useState(initial?.notes ?? "");
+  const [cardImage, setCardImage] = useState<string | undefined>(initial?.cardImage);
+  const [qrCodeData, setQrCodeData] = useState<string | undefined>(initial?.qrCodeData);
+  const [showQRScanner, setShowQRScanner] = useState(false);
   const [saving, setSaving] = useState(false);
   const [touched, setTouched] = useState(false);
 
@@ -73,11 +77,50 @@ export default function CardFormSheet({ initial, onCancel, onSave }: CardFormShe
     bankName,
     color,
     notes,
+    cardImage,
+    qrCodeData,
     createdAt: 0,
     updatedAt: 0,
   };
 
   const isValid = label.trim().length > 0 && digits.length >= 6;
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 900;
+        const MAX_HEIGHT = 600;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+        setCardImage(dataUrl);
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,6 +143,8 @@ export default function CardFormSheet({ initial, onCancel, onSave }: CardFormShe
         bankName: bankName.trim() || undefined,
         color,
         notes: notes.trim() || undefined,
+        cardImage,
+        qrCodeData: qrCodeData?.trim() || undefined,
         pinned: initial?.pinned,
       });
     } finally {
@@ -142,7 +187,7 @@ export default function CardFormSheet({ initial, onCancel, onSave }: CardFormShe
             <Field label="Card name">
               <input
                 className={inputClass}
-                placeholder="e.g. Chase Sapphire"
+                placeholder="e.g. Chase Sapphire, Driver ID"
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
                 maxLength={40}
@@ -159,14 +204,14 @@ export default function CardFormSheet({ initial, onCancel, onSave }: CardFormShe
               />
             </Field>
 
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Expiry (MM/YY) · optional">
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Expiry (MM/YY)">
                 <input
                   className={inputClass}
-                  placeholder="MM/YY"
+                  placeholder="08/29"
                   inputMode="numeric"
                   value={expiry}
-                  onChange={(e) => setExpiry(formatExpiryInput(e.target.value))}
+                  onChange={(e) => setExpiry(e.target.value)}
                   maxLength={5}
                 />
               </Field>
@@ -218,6 +263,58 @@ export default function CardFormSheet({ initial, onCancel, onSave }: CardFormShe
                     {c.label}
                   </button>
                 ))}
+              </div>
+            </Field>
+
+            {/* Custom Card Image Upload */}
+            <Field label="Card photo / ID image (optional)">
+              <div className="flex flex-col gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex-1 rounded-xl bg-white/[0.06] px-4 py-3 text-[14px] font-medium text-white/90 ring-1 ring-white/[0.08] hover:bg-white/10 active:scale-[0.98] transition"
+                  >
+                    {cardImage ? "Change Card Image" : "Upload ID / Card Image"}
+                  </button>
+                  {cardImage && (
+                    <button
+                      type="button"
+                      onClick={() => setCardImage(undefined)}
+                      className="rounded-xl bg-red-500/15 px-3 py-3 text-[13px] font-medium text-red-400 active:scale-95"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+            </Field>
+
+            {/* Pass QR Code Section */}
+            <Field label="Pass / Ticket QR Code (optional)">
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <input
+                    className={`${inputClass} flex-1`}
+                    placeholder="QR Code payload or URL"
+                    value={qrCodeData || ""}
+                    onChange={(e) => setQrCodeData(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowQRScanner(true)}
+                    className="shrink-0 rounded-xl bg-emerald-500/20 px-3.5 py-2.5 text-[13px] font-bold text-emerald-400 ring-1 ring-emerald-500/30 hover:bg-emerald-500/30 active:scale-95 transition"
+                  >
+                    Scan QR
+                  </button>
+                </div>
               </div>
             </Field>
 
@@ -298,17 +395,20 @@ export default function CardFormSheet({ initial, onCancel, onSave }: CardFormShe
                 Give the card a name and a number (at least 6 digits) to save it.
               </p>
             )}
-
-            <button
-              type="submit"
-              disabled={!isValid || saving}
-              className="mt-2 w-full rounded-2xl bg-white py-3.5 text-[15px] font-semibold text-ink-950 active:scale-[0.99] transition disabled:opacity-40"
-            >
-              {saving ? "Saving…" : initial ? "Save changes" : "Add card"}
-            </button>
           </div>
         </div>
       </form>
+
+      {/* QR Scanner Camera Modal Overlay */}
+      {showQRScanner && (
+        <QRScannerModal
+          onScan={(scannedVal) => {
+            setQrCodeData(scannedVal);
+            setShowQRScanner(false);
+          }}
+          onClose={() => setShowQRScanner(false)}
+        />
+      )}
     </div>
   );
 }

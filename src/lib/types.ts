@@ -30,6 +30,10 @@ export interface WalletCard {
   color: string;
   notes?: string;
   pinned?: boolean;
+  /** Base64 data URL or image URL for card face / ID card photo */
+  cardImage?: string;
+  /** Scanned or entered QR code payload for passes, tickets, and loyalty cards */
+  qrCodeData?: string;
   createdAt: number;
   updatedAt: number;
 }
