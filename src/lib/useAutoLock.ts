@@ -10,12 +10,12 @@ const ACTIVITY_EVENTS: Array<keyof DocumentEventMap> = [
 ];
 
 /**
- * Locks the vault after `minutes` of inactivity, and immediately whenever the
- * app is backgrounded (tab hidden / app switched away on mobile) — the same
- * behavior you'd expect from a wallet app holding sensitive data.
+ * Locks the vault after `minutes` of inactivity or after being backgrounded
+ * for longer than the configured auto-lock duration.
  */
 export function useAutoLock(active: boolean, minutes: number, onLock: () => void) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastHiddenTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!active || minutes <= 0) return;
@@ -27,8 +27,15 @@ export function useAutoLock(active: boolean, minutes: number, onLock: () => void
 
     const handleVisibility = () => {
       if (document.visibilityState === "hidden") {
-        onLock();
-      } else {
+        lastHiddenTimeRef.current = Date.now();
+      } else if (document.visibilityState === "visible") {
+        if (lastHiddenTimeRef.current) {
+          const elapsed = Date.now() - lastHiddenTimeRef.current;
+          if (elapsed >= minutes * 60_000) {
+            onLock();
+            return;
+          }
+        }
         reset();
       }
     };

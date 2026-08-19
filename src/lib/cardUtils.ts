@@ -109,10 +109,26 @@ export function cvvLengthForBrand(brand: CardBrand): number {
   return brand === "amex" ? 4 : 3;
 }
 
-/** Formats raw digit input into "MM/YY" as the user types. */
+/** Formats raw digit or slash input into "MM/YY" as the user types. */
 export function formatExpiryInput(raw: string): string {
-  const digits = onlyDigits(raw).slice(0, 4);
-  if (digits.length <= 2) return digits;
+  const clean = raw.trim();
+  const digits = onlyDigits(clean).slice(0, 4);
+
+  if (digits.length === 0) return "";
+
+  // Auto-prepend '0' if the first typed digit is between 2 and 9 (e.g. '8' -> '08/')
+  if (digits.length === 1 && parseInt(digits[0], 10) >= 2) {
+    return `0${digits}/`;
+  }
+
+  if (digits.length === 1) {
+    return digits;
+  }
+
+  if (digits.length === 2) {
+    return `${digits}/`;
+  }
+
   return `${digits.slice(0, 2)}/${digits.slice(2)}`;
 }
 

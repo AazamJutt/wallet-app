@@ -7,6 +7,7 @@ import {
   cvvLengthForBrand,
   detectBrand,
   formatCardNumber,
+  formatExpiryInput,
   maxLengthForBrand,
   onlyDigits,
 } from "@/lib/cardUtils";
@@ -221,7 +222,7 @@ export default function CardFormSheet({
                   placeholder="08/29"
                   inputMode="numeric"
                   value={expiry}
-                  onChange={(e) => setExpiry(e.target.value)}
+                  onChange={(e) => setExpiry(formatExpiryInput(e.target.value))}
                   maxLength={5}
                 />
               </Field>
