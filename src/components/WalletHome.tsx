@@ -80,10 +80,11 @@ export default function WalletHome() {
       <button
         type="button"
         onClick={() => setOverlay({ kind: "add" })}
-        className="safe-bottom fixed bottom-6 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 dark:bg-white text-white dark:text-ink-950 shadow-card-lg active:scale-95 transition"
+        className="fixed right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-950 shadow-card-lg active:scale-95 transition"
+        style={{ bottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
         aria-label="Add card"
       >
-        <PlusIcon className="h-6 w-6" />
+        <PlusIcon className="h-6 w-6 shrink-0" />
       </button>
 
       {overlay.kind === "detail" && (
