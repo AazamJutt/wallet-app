@@ -91,7 +91,7 @@ export default function AddCardOptionsSheet({
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[15px] font-bold text-white group-hover:text-emerald-400 transition-colors">
-                ID Card & Driver's License
+                ID Card & Driver&apos;s License
               </p>
               <p className="text-[12px] text-white/50 truncate">
                 Add photo ID, student card, or membership photo
